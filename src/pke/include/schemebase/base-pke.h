@@ -101,6 +101,7 @@ public:
    * @param *ciphertext ciphertext which results from encryption.
    */
     virtual Ciphertext<Element> Encrypt(Element plaintext, const PublicKey<Element> publicKey) const;
+    virtual std::tuple<Ciphertext<Element>, Element, Element, Element> Encrypt_(Element plaintext, const PublicKey<Element> publicKey) const;
 
     /**
    * Method for decrypting plaintext using LBC
@@ -136,6 +137,9 @@ public:
                                                                    const std::shared_ptr<ParmType> params) const;
 
     virtual std::shared_ptr<std::vector<Element> > EncryptZeroCore(const PublicKey<Element> publicKey,
+                                                                   const std::shared_ptr<ParmType> params,
+                                                                   const DggType& dgg) const;
+    virtual std::shared_ptr<std::vector<Element> > EncryptZeroCore_(const PublicKey<Element> publicKey,
                                                                    const std::shared_ptr<ParmType> params,
                                                                    const DggType& dgg) const;
 

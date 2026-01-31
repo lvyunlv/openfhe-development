@@ -289,7 +289,16 @@ protected:
             KeyPair<Element> kp = cc->KeyGen();
 
             // Encrypt plaintexts
-            Ciphertext<Element> ciphertext1 = cc->Encrypt(kp.publicKey, plaintext1);
+            
+            auto encryptResult = cc->Encrypt_(kp.publicKey, plaintext1);
+            Ciphertext<Element> ciphertext1 = std::get<0>(encryptResult);
+            DCRTPoly v = std::get<1>(encryptResult);
+            DCRTPoly e0 = std::get<2>(encryptResult);
+            DCRTPoly e1 = std::get<3>(encryptResult);
+            // std::cout << "======================" << std::endl;
+
+    // std::cout << "******** UnitTest ******* towers(v)= ***************" << v.GetParams()->GetParams().size() << "\n";
+    
             Ciphertext<Element> ciphertext2 = cc->Encrypt(kp.publicKey, plaintext2);
             Ciphertext<Element> cResult;
             Plaintext results;

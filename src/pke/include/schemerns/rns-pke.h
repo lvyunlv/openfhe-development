@@ -71,6 +71,7 @@ public:
    * @param *ciphertext ciphertext which results from encryption.
    */
     Ciphertext<DCRTPoly> Encrypt(DCRTPoly plaintext, const PublicKey<DCRTPoly> publicKey) const override;
+    std::tuple<Ciphertext<DCRTPoly>, DCRTPoly, DCRTPoly, DCRTPoly> Encrypt_(DCRTPoly plaintext, const PublicKey<DCRTPoly> publicKey) const override;
 
     /**
    * Method for encrypting plaintex using LBC
@@ -114,6 +115,9 @@ public:
                                                            const std::shared_ptr<ParmType> params) const override;
 
     std::shared_ptr<std::vector<DCRTPoly>> EncryptZeroCore(const PublicKey<DCRTPoly> publicKey,
+                                                           const std::shared_ptr<ParmType> params,
+                                                           const DggType& dgg) const override;
+    std::shared_ptr<std::vector<DCRTPoly>> EncryptZeroCore_(const PublicKey<DCRTPoly> publicKey,
                                                            const std::shared_ptr<ParmType> params,
                                                            const DggType& dgg) const override;
 

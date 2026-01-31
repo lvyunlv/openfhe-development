@@ -209,6 +209,18 @@ public:
         OPENFHE_THROW(config_error, "Encrypt operation has not been enabled");
     }
 
+    virtual std::tuple<Ciphertext<Element>, Element, Element, Element> Encrypt_(const Element& plaintext, const PublicKey<Element> publicKey) const {
+        if (m_PKE) {
+            //      if (!plaintext)
+            //        OPENFHE_THROW(config_error, "Input plaintext is nullptr");
+            if (!publicKey)
+                OPENFHE_THROW(config_error, "Input public key is nullptr");
+
+            return m_PKE->Encrypt_(plaintext, publicKey);
+        }
+        OPENFHE_THROW(config_error, "Encrypt operation has not been enabled");
+    }
+
     virtual DecryptResult Decrypt(ConstCiphertext<Element> ciphertext, const PrivateKey<Element> privateKey,
                                   NativePoly* plaintext) const {
         if (m_PKE) {
@@ -252,6 +264,17 @@ public:
                 OPENFHE_THROW(config_error, "Input public key is nullptr");
 
             return m_PKE->EncryptZeroCore(publicKey, nullptr, dgg);
+        }
+        OPENFHE_THROW(config_error, "EncryptZeroCore operation has not been enabled");
+    }
+
+    std::shared_ptr<std::vector<Element>> EncryptZeroCore_(const PublicKey<Element> publicKey,
+                                                          const DggType& dgg) const {
+        if (m_PKE) {
+            if (!publicKey)
+                OPENFHE_THROW(config_error, "Input public key is nullptr");
+
+            return m_PKE->EncryptZeroCore_(publicKey, nullptr, dgg);
         }
         OPENFHE_THROW(config_error, "EncryptZeroCore operation has not been enabled");
     }

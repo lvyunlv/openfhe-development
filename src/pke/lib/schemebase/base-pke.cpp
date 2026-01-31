@@ -117,6 +117,26 @@ Ciphertext<Element> PKEBase<Element>::Encrypt(Element plaintext, const PublicKey
     return ciphertext;
 }
 
+template <class Element>
+std::tuple<Ciphertext<Element>, Element, Element, Element> PKEBase<Element>::Encrypt_(Element plaintext, const PublicKey<Element> publicKey) const {
+    Ciphertext<Element> ciphertext           = std::make_shared<CiphertextImpl<Element>>(publicKey);
+    auto result = EncryptZeroCore_(publicKey, nullptr, DggType());
+
+    auto& vec = *result;
+    Element ba0 = vec[0];
+    Element ba1 = vec[1];
+    Element v = vec[2];
+    Element e0 = vec[3];
+    Element e1 = vec[4];
+
+    ba0 += plaintext;
+
+    ciphertext->SetElements({std::move(ba0), std::move(ba1)});
+    ciphertext->SetNoiseScaleDeg(1);
+
+    return std::make_tuple(ciphertext, v, e0, e1);
+}
+
 // makeSparse is not used by this scheme
 template <class Element>
 std::shared_ptr<std::vector<Element>> PKEBase<Element>::EncryptZeroCore(const PrivateKey<Element> privateKey,
@@ -181,6 +201,50 @@ std::shared_ptr<std::vector<Element>> PKEBase<Element>::EncryptZeroCore(const Pu
     a = p1 * v + ns * e1;
 
     return std::make_shared<std::vector<Element>>(std::initializer_list<Element>({std::move(b), std::move(a)}));
+}
+
+template <class Element>
+std::shared_ptr<std::vector<Element>> PKEBase<Element>::EncryptZeroCore_(const PublicKey<Element> publicKey,
+                                                                        const std::shared_ptr<ParmType> params,
+                                                                        const DggType& dgg) const {
+    const auto cryptoParams =
+        std::dynamic_pointer_cast<CryptoParametersRLWE<Element>>(publicKey->GetCryptoParameters());
+
+    const auto ns            = cryptoParams->GetNoiseScale();
+    const DggType& dggsecret = cryptoParams->GetDiscreteGaussianGenerator();
+    TugType tug;
+
+    const std::shared_ptr<ParmType> elementParams = (params == nullptr) ? cryptoParams->GetElementParams() : params;
+
+    const std::vector<Element>& pk = publicKey->GetPublicElements();
+
+    Element p0 = pk[0];
+    Element p1 = pk[1];
+
+    usint sizeQ  = elementParams->GetParams().size();
+    usint sizePK = p0.GetParams()->GetParams().size();
+
+    if (sizePK > sizeQ) {
+        p0.DropLastElements(sizePK - sizeQ);
+        p1.DropLastElements(sizePK - sizeQ);
+    }
+
+    
+    Element v = cryptoParams->GetSecretKeyDist() == GAUSSIAN ? Element(dggsecret, elementParams, Format::EVALUATION) :
+                                                               Element(tug, elementParams, Format::EVALUATION);
+
+    const DggType& dggGen = dgg.IsInitialized() ? dgg : cryptoParams->GetDiscreteGaussianGenerator();
+
+    Element e0(dggGen, elementParams, Format::EVALUATION);
+    Element e1(dggGen, elementParams, Format::EVALUATION);
+
+    Element b(elementParams);
+    Element a(elementParams);
+
+    b = p0 * v + ns * e0;
+    a = p1 * v + ns * e1;
+
+    return std::make_shared<std::vector<Element>>(std::initializer_list<Element>({std::move(b), std::move(a),std::move(v), std::move(e0),std::move(e1)}));
 }
 
 template <class Element>
