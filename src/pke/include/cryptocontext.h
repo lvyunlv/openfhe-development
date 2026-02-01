@@ -1106,6 +1106,33 @@ public:
         return Encrypt(plaintext, publicKey);
     }
 
+    std::tuple<Ciphertext<Element>, Element, Element, Element> Encrypt_(Plaintext plaintext, const PublicKey<Element> publicKey) const {
+        if (plaintext == nullptr)
+            OPENFHE_THROW(type_error, "Input plaintext is nullptr");
+        CheckKey(publicKey);
+
+        auto results = GetScheme()->Encrypt_(plaintext->GetElement<Element>(), publicKey);
+        Ciphertext<Element> ciphertext = std::get<0>(results);
+        Element v = std::get<1>(results);
+        Element e0 = std::get<2>(results);
+        Element e1 = std::get<3>(results);
+
+        if (ciphertext) {
+            ciphertext->SetEncodingType(plaintext->GetEncodingType());
+            ciphertext->SetScalingFactor(plaintext->GetScalingFactor());
+            ciphertext->SetScalingFactorInt(plaintext->GetScalingFactorInt());
+            ciphertext->SetNoiseScaleDeg(plaintext->GetNoiseScaleDeg());
+            ciphertext->SetLevel(plaintext->GetLevel());
+            ciphertext->SetSlots(plaintext->GetSlots());
+        }
+
+        return std::make_tuple(ciphertext, v, e0, e1);
+    }
+
+    std::tuple<Ciphertext<Element>, Element, Element, Element> Encrypt_(const PublicKey<Element> publicKey, Plaintext plaintext) const {
+        return Encrypt_(plaintext, publicKey);
+    }
+
     /**
    * Encrypt a plaintext using a given private key
    * @param privateKey
